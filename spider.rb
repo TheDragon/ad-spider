@@ -4,6 +4,7 @@ require 'mechanize'
 require 'dm-core'
 require 'db/link.rb'
 class Spider
+  # Set defaults and pull args
   def initialize(options = {})
     @depth = options[:depth]
     @url = options[:url]
@@ -13,8 +14,6 @@ class Spider
     @verbose = options[:verbose] || false
     @suppress_errors = options[:suppress_errors] || false
     @stylesheet = options[:stylesheet] || "default.css"
-    
-    @threads = Thread.list
     @agent = WWW::Mechanize.new
     @page = @agent.get(@url)
     if @clean_start
@@ -176,7 +175,7 @@ end
 
 if __FILE__ == $0
   url = 'http://www.madison.com'
-  @spider = Spider.new(:url => url, :depth => 10, :clean_start => false, :verbose => true, :suppress_errors => true)
+  @spider = Spider.new(:url => url, :depth => 10, :clean_start => true, :verbose => true, :suppress_errors => true)
   @spider.crawl
   @spider.generate_csv
 end
