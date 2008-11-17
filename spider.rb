@@ -83,14 +83,15 @@ class Spider
     puts 'Generating CSV' if @verbose
     distinct = repository(:default).adapter.query('SELECT distinct url from links')
     distinct.each do |url|
-      line = url
+      line = ["#{url}"]
       Link.all(:conditions => ["url = ?", url]).each do |tag|
-        line += ",#{tag.tag}"
+        line << tag.tag
       end
-      line += "\n"
-      File.new('html/results.csv', "w+") do |csv|
-        csv.puts line
-      end  
+      csvfile = File.open('html/results.csv', 'a')
+      CSV::Writer.generate(csvfile) do |csv|
+        csv << line
+      end
+      csvfile.close
     end
   end
   
@@ -176,7 +177,7 @@ end
 
 if __FILE__ == $0
   url = 'http://www.madison.com'
-  @spider = Spider.new(:url => url, :depth => 10, :clean_start => true, :verbose => true, :suppress_errors => true)
+  @spider = Spider.new(:url => url, :depth => 6, :clean_start => true, :verbose => true, :suppress_errors => true)
   @spider.crawl
   @spider.generate_csv
 end
