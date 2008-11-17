@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>crawl (Spider)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File spider.rb, line 100</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">crawl</span>
+    <span class="ruby-identifier">top</span> = <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">new</span> <span class="ruby-keyword kw">do</span>
+    <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@counter</span> <span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@depth</span>
+      <span class="ruby-ivar">@page</span>.<span class="ruby-identifier">links</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">link</span><span class="ruby-operator">|</span>
+        <span class="ruby-keyword kw">next</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">link</span>.<span class="ruby-identifier">href</span>.<span class="ruby-identifier">nil?</span>
+        <span class="ruby-keyword kw">next</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">forbidden?</span>(<span class="ruby-identifier">link</span>.<span class="ruby-identifier">href</span>)
+        <span class="ruby-keyword kw">begin</span>
+          <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">link</span>.<span class="ruby-identifier">href</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^http:\/\/w+\.madison.com/</span>
+            <span class="ruby-identifier">process_full_url</span>(<span class="ruby-identifier">link</span>.<span class="ruby-identifier">href</span>)
+          <span class="ruby-keyword kw">end</span>
+      
+          <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">link</span>.<span class="ruby-identifier">href</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^\//</span>
+            <span class="ruby-identifier">link</span>.<span class="ruby-identifier">href</span>.<span class="ruby-identifier">chop!</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">link</span>.<span class="ruby-identifier">href</span><span class="ruby-operator">=~</span> <span class="ruby-regexp re">/\/$/</span>
+            <span class="ruby-identifier">process_relative_url</span>(<span class="ruby-identifier">link</span>.<span class="ruby-identifier">href</span>)
+          <span class="ruby-keyword kw">end</span>
+          
+        <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">WWW</span><span class="ruby-operator">::</span><span class="ruby-constant">Mechanize</span><span class="ruby-operator">::</span><span class="ruby-constant">ResponseCodeError</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">rce</span>
+          <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">rce</span>.<span class="ruby-identifier">response_code</span>
+          <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'404'</span>
+            <span class="ruby-identifier">detail</span> = <span class="ruby-value str">'Not Found'</span>
+          <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'403'</span>
+            <span class="ruby-identifier">detail</span> = <span class="ruby-value str">'Forbidden'</span>
+          <span class="ruby-keyword kw">else</span>
+            <span class="ruby-identifier">detail</span> = <span class="ruby-value str">'Unknown error'</span>
+          <span class="ruby-keyword kw">end</span>
+          <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Processing link has failed! Error code: #{rce.response_code} #{detail}&quot;</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@suppress_errors</span>
+        <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Timeout</span><span class="ruby-operator">::</span><span class="ruby-constant">Error</span>
+          <span class="ruby-identifier">puts</span> <span class="ruby-value str">'Skipping file . Reason: Timed out while processing file.'</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@suppress_errors</span>
+        <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">SQLite3</span><span class="ruby-operator">::</span><span class="ruby-constant">BusyException</span>
+          <span class="ruby-identifier">puts</span> <span class="ruby-value str">'SQLite db is locked. Retrying.'</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@suppress_errors</span>
+        <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">SQLite3</span><span class="ruby-operator">::</span><span class="ruby-constant">SQLException</span>
+          <span class="ruby-identifier">puts</span> <span class="ruby-value str">'SQL logic error or missing database. Retrying.'</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@suppress_errors</span>
+        <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">SQLite3</span><span class="ruby-operator">::</span><span class="ruby-constant">CantOpenException</span>
+          <span class="ruby-identifier">puts</span> <span class="ruby-value str">'Cannot open the SQL database. Retrying.'</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@suppress_errors</span>
+        <span class="ruby-keyword kw">end</span>
+      <span class="ruby-keyword kw">end</span> 
+    <span class="ruby-keyword kw">end</span>
+  <span class="ruby-keyword kw">end</span>
+  <span class="ruby-identifier">top</span>.<span class="ruby-identifier">join</span>
+  <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

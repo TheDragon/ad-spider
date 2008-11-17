@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>new (Spider)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File spider.rb, line 5</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">options</span> = {})
+    <span class="ruby-ivar">@depth</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:depth</span>]
+    <span class="ruby-ivar">@url</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:url</span>]
+    <span class="ruby-ivar">@baseurl</span> = <span class="ruby-value str">'http://www.madison.com'</span>
+    <span class="ruby-ivar">@counter</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:counter</span>] <span class="ruby-operator">||</span> <span class="ruby-value">1</span>
+    <span class="ruby-ivar">@clean_start</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:clean_start</span>] <span class="ruby-operator">||</span> <span class="ruby-keyword kw">false</span>
+    <span class="ruby-ivar">@verbose</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:verbose</span>] <span class="ruby-operator">||</span> <span class="ruby-keyword kw">false</span>
+    <span class="ruby-ivar">@suppress_errors</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:suppress_errors</span>] <span class="ruby-operator">||</span> <span class="ruby-keyword kw">false</span>
+    
+    <span class="ruby-ivar">@threads</span> = <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">list</span>
+    <span class="ruby-ivar">@db</span> = <span class="ruby-constant">SQLite3</span><span class="ruby-operator">::</span><span class="ruby-constant">Database</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'db/dev.db'</span>)
+    <span class="ruby-comment cmt"># @page = WWW::Mechanize.new.get(@url)</span>
+    <span class="ruby-ivar">@agent</span> = <span class="ruby-constant">WWW</span><span class="ruby-operator">::</span><span class="ruby-constant">Mechanize</span>.<span class="ruby-identifier">new</span>
+    <span class="ruby-ivar">@page</span> = <span class="ruby-ivar">@agent</span>.<span class="ruby-identifier">get</span>(<span class="ruby-ivar">@url</span>)
+    <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@clean_start</span>
+      <span class="ruby-ivar">@db</span>.<span class="ruby-identifier">execute</span>(<span class="ruby-value str">&quot;delete from links&quot;</span>)
+    <span class="ruby-keyword kw">end</span>
+    
+  <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

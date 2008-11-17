@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>forbidden? (Spider)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File spider.rb, line 91</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">forbidden?</span>(<span class="ruby-identifier">link</span>)
+    <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">link</span>
+    <span class="ruby-keyword kw">when</span> <span class="ruby-keyword kw">nil</span>, <span class="ruby-regexp re">/\.xml/</span>, <span class="ruby-regexp re">/\.pdf/</span>, <span class="ruby-regexp re">/\.gif/</span>, <span class="ruby-regexp re">/\.jpg/</span>, <span class="ruby-regexp re">/^\/\{/</span>, <span class="ruby-regexp re">/rss.php$/</span>
+      <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">true</span>
+    <span class="ruby-keyword kw">else</span>
+      <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">false</span>
+    <span class="ruby-keyword kw">end</span>
+  <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

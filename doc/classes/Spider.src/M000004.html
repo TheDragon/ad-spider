@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>db_save (Spider)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File spider.rb, line 58</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">db_save</span>(<span class="ruby-identifier">link</span>)
+    <span class="ruby-identifier">tags</span> = <span class="ruby-identifier">find_omniture_tag</span>(<span class="ruby-identifier">link</span>)
+    <span class="ruby-comment cmt"># puts tags.inspect</span>
+    <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">tags</span>.<span class="ruby-identifier">nil?</span>
+      <span class="ruby-identifier">tags</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">tag</span><span class="ruby-operator">|</span>
+        <span class="ruby-comment cmt"># puts &quot;#{link}::::::::::::::::::::#{tag}&quot;</span>
+        <span class="ruby-keyword kw">begin</span>
+        <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@db</span>.<span class="ruby-identifier">transaction_active?</span>
+          <span class="ruby-ivar">@db</span>.<span class="ruby-identifier">transaction</span> <span class="ruby-keyword kw">do</span>
+            <span class="ruby-ivar">@db</span>.<span class="ruby-identifier">execute</span>( <span class="ruby-value str">&quot;insert into links (url,tag) values (?, ?)&quot;</span>, <span class="ruby-identifier">link</span>, <span class="ruby-identifier">tag</span>)
+          <span class="ruby-keyword kw">end</span>
+          <span class="ruby-ivar">@db</span>.<span class="ruby-identifier">close</span>
+        <span class="ruby-keyword kw">else</span>
+          <span class="ruby-keyword kw">retry</span>
+        <span class="ruby-keyword kw">end</span>
+      <span class="ruby-keyword kw">end</span>
+        <span class="ruby-comment cmt"># puts link.inspect</span>
+      <span class="ruby-keyword kw">end</span>
+    <span class="ruby-keyword kw">end</span>
+  <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>
