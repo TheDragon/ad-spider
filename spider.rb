@@ -81,7 +81,6 @@ class Spider
   
   def generate_csv
     puts 'Generating CSV' if @verbose
-    csv = File.new('html/results.csv', "w+")
     distinct = repository(:default).adapter.query('SELECT distinct url from links')
     distinct.each do |url|
       line = url
@@ -89,7 +88,9 @@ class Spider
         line += ",#{tag.tag}"
       end
       line += "\n"
-      csv.puts line
+      File.new('html/results.csv', "w+") do |csv|
+        csv.puts line
+      end  
     end
   end
   
