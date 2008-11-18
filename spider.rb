@@ -3,6 +3,7 @@ require 'rubygems'
 require 'mechanize'
 require 'dm-core'
 require 'db/link.rb'
+require 'csv'
 class Spider
   # Set defaults and pull args
   def initialize(options = {})
@@ -60,38 +61,17 @@ class Spider
   top.join
   end
   
-#  def generate_html
-#    puts 'Generating final HTML' if @verbose
-#    html = File.new('html/index.html', "w+")
-#    html.puts "<html><head><title>Omniture report generated at #{Time.now}</title>"
-#    html.puts "<link rel='stylesheet' href='#{@stylesheet}' />"
-#    html.puts "</head><body>"
-#    html.puts '<table>'
-#    @db.execute( "select distinct url from links" ) do |url|
-#      # puts url.inspect
-#      html.puts "<tr><td>#{url}</td>"
-#      @db.execute( "select tag from links where url = ?", url ) do |tags|
-#        # puts tags.inspect
-#        html.puts "<td>#{tags}</td>"
-#      end
-#      html.puts '</tr>'
-#    end
-#    html.puts '</table></body></html>'
-#  end
-  
   def generate_csv
     puts 'Generating CSV' if @verbose
-    distinct = repository(:default).adapter.query('SELECT distinct url from links')
-    distinct.each do |url|
-      line = ["#{url}"]
-      Link.all(:conditions => ["url = ?", url]).each do |tag|
-        line << tag.tag
+    CSV.open('html/results.csv', 'w') do |csv|
+      distinct = repository(:default).adapter.query('SELECT distinct url from links')
+      distinct.each do |url|
+        @line = ["#{url}"]
+        Link.all(:conditions => ["url = ?", url]).each do |tag|
+          @line << tag.tag
+        end
+        csv << @line
       end
-      csvfile = File.open('html/results.csv', 'a')
-      CSV::Writer.generate(csvfile) do |csv|
-        csv << line
-      end
-      csvfile.close
     end
   end
   
@@ -177,7 +157,7 @@ end
 
 if __FILE__ == $0
   url = 'http://www.madison.com'
-  @spider = Spider.new(:url => url, :depth => 6, :clean_start => true, :verbose => true, :suppress_errors => true)
-  @spider.crawl
+  @spider = Spider.new(:url => url, :depth => 6, :clean_start => false, :verbose => true, :suppress_errors => true)
+ # @spider.crawl
   @spider.generate_csv
 end
