@@ -9,6 +9,7 @@ class Spider
   def initialize(options = {})
     @depth = options[:depth]
     @url = options[:url]
+    @debug = false || options[:debug]
     @baseurl = 'http://www.madison.com'
     @counter = options[:counter] || 1
     @clean_start = options[:clean_start] || false
@@ -28,16 +29,16 @@ class Spider
       @page.links.each do |link|
         next if link.href.nil?
         next if forbidden?(link.href)
+        link.href.chop! if link.href =~ /\/$/
         begin
-          if link.href =~ /^http:\/\/w+\.madison.com/
+          case link.href
+          when /^http:\/\/\w+\.*madison\.com/
             process_full_url(link.href)
-          end
-      
-          if link.href =~ /^\//
-            link.href.chop! if link.href=~ /\/$/
+          when /^\//
+            process_base_url(link.href)
+          when /^\w+/
             process_relative_url(link.href)
-          end
-          
+          end  
         rescue WWW::Mechanize::ResponseCodeError => rce
           case rce.response_code
           when '404'
@@ -47,7 +48,7 @@ class Spider
           else
             detail = 'Unknown error'
           end
-          puts "Processing link has failed! Error code: #{rce.response_code} #{detail}" unless @suppress_errors
+          puts "Processing #{@url} has failed! Error code: #{rce.response_code} #{detail}" unless @suppress_errors
         rescue Timeout::Error
           puts "Skipping  #{@url}. Reason: Timed out while processing file." unless @suppress_errors
         rescue SystemCallError
@@ -64,11 +65,14 @@ class Spider
   def generate_csv
     puts 'Generating CSV' if @verbose
     CSV.open('html/results.csv', 'w') do |csv|
+      csv << ['Page URL', 'AD Zones']
       distinct = repository(:default).adapter.query('SELECT distinct url from links')
       distinct.each do |url|
         @line = ["#{url}"]
         Link.all(:conditions => ["url = ?", url]).each do |tag|
-          @line << tag.tag
+          unless tag.tag.nil?
+            @line << tag.tag
+          end
         end
         csv << @line
       end
@@ -78,6 +82,7 @@ class Spider
   private
   
   def process_full_url(link)
+    puts "::::::::::DEBUG:::::::::::::Full url #{link}" if @debug
     tabber = ''
     @counter.times{ tabber += '--' }
     unless exists?(link)
@@ -93,7 +98,8 @@ class Spider
     end
   end
   
-  def process_relative_url(link)
+  def process_base_url(link)
+    puts "::::::::::DEBUG:::::::::::::Base url #{link}" if @debug
     tabber = ''
     link = @baseurl + link
     @counter.times{ tabber += '--' }
@@ -101,8 +107,27 @@ class Spider
       puts "#{tabber}Processing #{link}" if @verbose
       db_save(link)
       new_thread = Thread.new do
-        next_link = Spider.new(:url => link, :depth => @depth, :counter => @counter + 1, :verbose => @verbose, :suppress_errors => @suppress_errors)
+        next_link = Spider.new(:url => link, :depth => @depth, :counter => @counter + 1, :verbose => @verbose, :suppress_errors => @suppress_errors, :debug => @debug)
           next_link.crawl
+      end
+      new_thread.join
+    else
+      puts "Skipping #{link} Reason: Already Processed." unless @suppress_errors
+    end
+  end
+  
+  def process_relative_url(link)
+    puts "::::::::::DEBUG:::::::::::::Relative url #{link}" if @debug
+    tabber = ''
+    @url.sub!(/\/\w*\.\w{3}$/, '')
+    link = "#{@url}/#{link}"
+    @counter.times{ tabber += '--' }
+    unless exists?(link)
+      puts "#{tabber}Processing #{link}" if @verbose
+      db_save(link)
+      new_thread = Thread.new do
+        next_link = Spider.new(:url => link, :depth => @depth, :counter => @counter + 1, :verbose => @verbose, :suppress_errors => @suppress_errors, :debug => @debug)
+        next_link.crawl
       end
       new_thread.join
     else
@@ -120,7 +145,15 @@ class Spider
           puts "There was an error saving the tag" unless @suppress_errors
         end
       end
+    end
+    if tags.nil?
+      page = Link.new
+      page.attributes = {:url => link}
+      unless page.save do
+        puts "There was an error saving the tag" unless @suppress_errors
       end
+    end
+    end
     end
   end
   
@@ -138,7 +171,11 @@ class Spider
   
   def forbidden?(link)
     case link
-    when nil, /\.xml/, /\.pdf/, /\.gif/, /\.jpg/, /^\/\{/, /rss.php$/
+    when nil, /\.xml$/, /\.pdf$/, /\.gif$/, /\.jpg$/, /^\/\{/, /rss.php$/, /javascript:/
+      return true
+    when /^http:\/\/\w+\.*madison\.com/
+      return false
+    when /^http:\/\//, /^https:\/\//
       return true
     else
       return false
@@ -157,7 +194,7 @@ end
 
 if __FILE__ == $0
   url = 'http://www.madison.com'
-  @spider = Spider.new(:url => url, :depth => 6, :clean_start => false, :verbose => true, :suppress_errors => true)
- # @spider.crawl
+  @spider = Spider.new(:url => url, :depth => 8, :clean_start => true, :verbose => true, :suppress_errors => false, :debug => true)
+  @spider.crawl
   @spider.generate_csv
 end
