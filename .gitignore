@@ -1,1 +1,5 @@
 .DS_Store
+html/results.csv
+html/default.css
+html/results.html
+db/*.db

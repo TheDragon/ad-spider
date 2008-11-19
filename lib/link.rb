@@ -1,6 +1,6 @@
 require 'rubygems'
 require 'dm-core'
-DataMapper.setup(:default, "sqlite3:///#{Dir.pwd}/db/dev.db")
+DataMapper.setup(:default, "sqlite3:///#{Dir.pwd}/../db/dev.db")
 class Link
     include DataMapper::Resource
     property  :id,       Integer, :serial => true
